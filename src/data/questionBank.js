@@ -152,11 +152,34 @@ export const openPool = [
   o("open-30", "Architecture", "Pourquoi la lisibilité du code est-elle importante pour comprendre un projet inconnu ?", ["Noms clairs", "Structure logique", "Commentaires utiles et à jour", "Facilite debug et évolution"], "Un code lisible permet de comprendre plus vite les responsabilités, les traitements et les erreurs possibles, même si l'on découvre le projet."),
 ];
 
+const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
+
+const optionIds = ["A", "B", "C", "D"];
+
+const shuffleQuestionOptions = (question) => {
+  const shuffledOptions = shuffle(question.options);
+  const options = shuffledOptions.map((answer, index) => ({
+    ...answer,
+    id: optionIds[index],
+  }));
+  const answers = shuffledOptions
+    .map((answer, index) => (question.answers.includes(answer.id) ? optionIds[index] : null))
+    .filter(Boolean);
+
+  return {
+    ...question,
+    options,
+    answers,
+  };
+};
+
+const prepareMcq = (questions) => questions.map(shuffleQuestionOptions);
+
 const sliceVersion = (id, label, description, start) => ({
   id,
   label,
   description,
-  mcq: mcqPool.slice(start, start + 30),
+  mcq: prepareMcq(mcqPool.slice(start, start + 30)),
   open: openPool.slice(start / 3, start / 3 + 10),
 });
 
@@ -166,14 +189,12 @@ export const trainingVersions = [
   sliceVersion("version-3", "Version 3", "Synthèse : lecture de code, rôles, validation, relations SQL et raisonnement serveur.", 60),
 ];
 
-const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
-
 export function getRandomVersion() {
   return {
     id: `random-${Date.now()}`,
     label: "Version aléatoire",
     description: "30 QCM et 10 questions ouvertes tirées sans doublon de toute la banque.",
-    mcq: shuffle(mcqPool).slice(0, 30),
+    mcq: prepareMcq(shuffle(mcqPool).slice(0, 30)),
     open: shuffle(openPool).slice(0, 10),
   };
 }
