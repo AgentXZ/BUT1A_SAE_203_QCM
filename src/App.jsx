@@ -87,9 +87,10 @@ function ProgressBar({ answered, total }) {
   );
 }
 
-function McqQuestion({ question, selected, submitted, onChange }) {
+function McqQuestion({ question, selected, submitted, showCorrection, onChange, onToggleCorrection }) {
   const selectedValues = selected ?? [];
   const questionCorrect = submitted && isCorrect(question, selectedValues);
+  const expectedAnswers = question.options.filter((answer) => question.answers.includes(answer.id));
 
   function toggleAnswer(answerId) {
     if (submitted) return;
@@ -133,6 +134,22 @@ function McqQuestion({ question, selected, submitted, onChange }) {
           );
         })}
       </div>
+      <button className="secondary-button answer-toggle" onClick={() => onToggleCorrection(question.id)}>
+        {showCorrection ? "Masquer la réponse" : "Afficher la réponse attendue"}
+      </button>
+      {showCorrection && (
+        <div className="mcq-correction">
+          <strong>Réponse attendue</strong>
+          <ul>
+            {expectedAnswers.map((answer) => (
+              <li key={answer.id}>
+                <span className="answer-key">{answer.id}</span>
+                <span>{answer.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {submitted && (
         <div className="explanation">
           <strong>{questionCorrect ? "Bonne réponse." : "À revoir."}</strong>
@@ -218,12 +235,14 @@ function TrainingView({ version, onBack }) {
   const [answers, setAnswers] = useState({});
   const [openAnswers, setOpenAnswers] = useState({});
   const [visibleCorrections, setVisibleCorrections] = useState({});
+  const [visibleMcqCorrections, setVisibleMcqCorrections] = useState({});
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     setAnswers({});
     setOpenAnswers({});
     setVisibleCorrections({});
+    setVisibleMcqCorrections({});
     setSubmitted(false);
   }, [version.id]);
 
@@ -232,6 +251,20 @@ function TrainingView({ version, onBack }) {
     const openAnswered = version.open.filter((question) => (openAnswers[question.id] ?? "").trim().length > 0).length;
     return mcqAnswered + openAnswered;
   }, [answers, openAnswers, version]);
+  const allMcqCorrectionsVisible = version.mcq.every((question) => visibleMcqCorrections[question.id]);
+
+  function toggleAllMcqCorrections() {
+    if (allMcqCorrectionsVisible) {
+      setVisibleMcqCorrections({});
+      return;
+    }
+    setVisibleMcqCorrections(
+      version.mcq.reduce((corrections, question) => {
+        corrections[question.id] = true;
+        return corrections;
+      }, {})
+    );
+  }
 
   return (
     <main>
@@ -251,7 +284,12 @@ function TrainingView({ version, onBack }) {
       <section className="question-section">
         <div className="section-title">
           <h2>QCM</h2>
-          <span>{version.mcq.length} questions</span>
+          <div className="section-actions">
+            <button className="secondary-button" onClick={toggleAllMcqCorrections}>
+              {allMcqCorrectionsVisible ? "Masquer les réponses" : "Afficher toutes les réponses"}
+            </button>
+            <span>{version.mcq.length} questions</span>
+          </div>
         </div>
         {version.mcq.map((question, index) => (
           <div className="numbered-card" key={question.id}>
@@ -260,7 +298,9 @@ function TrainingView({ version, onBack }) {
               question={question}
               selected={answers[question.id]}
               submitted={submitted}
+              showCorrection={Boolean(visibleMcqCorrections[question.id])}
               onChange={(id, next) => setAnswers((current) => ({ ...current, [id]: next }))}
+              onToggleCorrection={(id) => setVisibleMcqCorrections((current) => ({ ...current, [id]: !current[id] }))}
             />
           </div>
         ))}

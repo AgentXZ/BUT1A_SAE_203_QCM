@@ -342,6 +342,17 @@ h3 {
   font-weight: 800;
 }
 
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-actions .secondary-button {
+  min-height: 38px;
+  padding: 7px 12px;
+}
+
 .numbered-card {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr);
@@ -445,7 +456,8 @@ h3 {
 }
 
 .explanation,
-.open-correction {
+.open-correction,
+.mcq-correction {
   display: grid;
   gap: 6px;
   margin-top: 14px;
@@ -470,9 +482,27 @@ h3 {
   margin-top: 12px;
 }
 
+.answer-toggle {
+  margin-top: 12px;
+}
+
 .open-correction ul {
   margin: 0 0 8px 18px;
   padding: 0;
+}
+
+.mcq-correction ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mcq-correction li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
 }
 
 .open-correction p {
@@ -569,6 +599,16 @@ h3 {
 
   .tabs button {
     padding: 8px 10px;
+  }
+
+  .section-title {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .section-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .intro-section,
